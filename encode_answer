@@ -1,0 +1,17 @@
+def encode_answer(imgs, atoi):   #答案编码
+    N = len(imgs)
+    ans_arrays = np.zeros(N, dtype='uint32')
+
+    for i, img in enumerate(imgs):
+        ans_arrays[i] = atoi.get(img['ans'], -1) # -1 means wrong answer.
+
+    return ans_arrays
+
+def encode_mc_answer(imgs, atoi):
+    N = len(imgs)
+    mc_ans_arrays = np.zeros((N, 18), dtype='uint32')
+
+    for i, img in enumerate(imgs):
+        for j, ans in enumerate(img['MC_ans']):
+            mc_ans_arrays[i,j] = atoi.get(ans, 0)
+    return mc_ans_arrays
