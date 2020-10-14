@@ -1,0 +1,18 @@
+def encode_question(imgs, params, wtoi):
+
+    max_length = params['max_length']
+    N = len(imgs)
+
+    label_arrays = np.zeros((N, max_length), dtype='uint32')
+    label_length = np.zeros(N, dtype='uint32')
+    question_id = np.zeros(N, dtype='uint32')
+    question_counter = 0
+    for i,img in enumerate(imgs):
+        question_id[question_counter] = img['ques_id']
+        label_length[question_counter] = min(max_length, len(img['final_question'])) # record the length of this sequence
+        question_counter += 1
+        for k,w in enumerate(img['final_question']):
+            if k < max_length:
+                label_arrays[i,k] = wtoi[w]
+    
+    return label_arrays, label_length, question_id
