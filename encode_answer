@@ -1,17 +1,17 @@
 def encode_answer(imgs, atoi):   #答案编码
-    N = len(imgs)
-    ans_arrays = np.zeros(N, dtype='uint32')
+    N = len(imgs)         #图片长度
+    ans_arrays = np.zeros(N, dtype='uint32')    #返回给定形状和类型的用0填充的数组，数量共为N个
 
     for i, img in enumerate(imgs):
-        ans_arrays[i] = atoi.get(img['ans'], -1) # -1 means wrong answer.
+        ans_arrays[i] = atoi.get(img['ans'], -1) # -1 means wrong answer.    #获取图像答案的字符串， -1意味着错误答案
 
-    return ans_arrays
+    return ans_arrays   #返回答案数组
 
-def encode_mc_answer(imgs, atoi):
+def encode_mc_answer(imgs, atoi):  
     N = len(imgs)
     mc_ans_arrays = np.zeros((N, 18), dtype='uint32')
 
     for i, img in enumerate(imgs):
         for j, ans in enumerate(img['MC_ans']):
             mc_ans_arrays[i,j] = atoi.get(ans, 0)
-    return mc_ans_arrays
+    return mc_ans_arrays  
