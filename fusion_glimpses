@@ -1,0 +1,24 @@
+    def _fusion_glimpses(self, list_v_att, x_q_vec):
+        # Process visual for each glimpses
+        list_v = []
+        for glimpse_id, x_v_att in enumerate(list_v_att):
+            x_v = F.dropout(x_v_att,
+                            p=self.opt['fusion']['dropout_v'],
+                            training=self.training)
+            x_v = self.list_linear_v_fusion[glimpse_id](x_v)
+            if 'activation_v' in self.opt['fusion']:
+                x_v = getattr(F, self.opt['fusion']['activation_v'])(x_v)
+            list_v.append(x_v)
+        x_v = torch.cat(list_v, 1)
+
+        # Process question
+        x_q = F.dropout(x_q_vec,
+                        p=self.opt['fusion']['dropout_q'],
+                        training=self.training)
+        x_q = self.linear_q_fusion(x_q)
+        if 'activation_q' in self.opt['fusion']:
+            x_q = getattr(F, self.opt['fusion']['activation_q'])(x_q)
+
+        # 第二次多模态融合
+        x = self._fusion_classif(x_v, x_q)
+        return x
