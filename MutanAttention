@@ -1,0 +1,31 @@
+class MutanAtt(AbstractAtt):
+
+    def __init__(self, opt={}, vocab_words=[], vocab_answers=[]):
+        # TODO: deep copy 
+        opt['attention']['dim_v'] = opt['attention']['dim_hv']
+        opt['attention']['dim_q'] = opt['attention']['dim_hq']
+        super(MutanAtt, self).__init__(opt, vocab_words, vocab_answers)
+        #  分类模块
+        self.fusion_att = fusion.MutanFusion2d(self.opt['attention'],
+                                               visual_embedding=False,
+                                               question_embedding=False)
+        self.list_linear_v_fusion = nn.ModuleList([
+            nn.Linear(self.opt['dim_v'],
+                      int(self.opt['fusion']['dim_hv']
+                          / opt['attention']['nb_glimpses']))
+            for i in range(self.opt['attention']['nb_glimpses'])])
+        self.linear_q_fusion = nn.Linear(self.opt['dim_q'],
+                                         self.opt['fusion']['dim_hq'])
+                                         
+        self.linear_classif = nn.Linear(self.opt['fusion']['dim_mm'],
+                                        self.num_classes)
+                                        
+        self.fusion_classif = fusion.MutanFusion(self.opt['fusion'],
+                                                 visual_embedding=False,
+                                                 question_embedding=False)
+
+    def _fusion_att(self, x_v, x_q):
+        return self.fusion_att(x_v, x_q)
+
+    def _fusion_classif(self, x_v, x_q):
+        return self.fusion_classif(x_v, x_q)
