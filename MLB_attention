@@ -21,6 +21,11 @@ class MLBAtt(AbstractAtt):    #多模态低秩双线性注意力
                                         self.num_classes)
 
     def _fusion_att(self, x_v, x_q):
+    """
+    功能：
+    输入：size; [batch, 1, weight,high];
+    输出：
+    """
         x_att = torch.mul(x_v, x_q)
         return x_att
 
