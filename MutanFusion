@@ -1,15 +1,15 @@
 class MutanFusion(AbstractFusion):
 
-    def __init__(self, opt, visual_embedding=True, question_embedding=True):
+    def __init__(self, opt, visual_embedding=True, question_embedding=True):   
         super(MutanFusion, self).__init__(opt)
-        self.visual_embedding = visual_embedding
+        self.visual_embedding = visual_embedding                                        """输入：问题特征向量q、图像特征向量v,功能：与张量Tc进行融合"""
         self.question_embedding = question_embedding
-         # 模块
+            # 模块
         if self.visual_embedding:
             self.linear_v = nn.Linear(self.opt['dim_v'], self.opt['dim_hv'])
         else:
-            print('Warning fusion.py: no visual embedding before fusion')
-
+            print('Warning fusion.py: no visual embedding before fusion')       
+                        #将问题向量和视觉向量在融合前嵌入
         if self.question_embedding:
             self.linear_q = nn.Linear(self.opt['dim_q'], self.opt['dim_hq'])
         else:
@@ -17,14 +17,14 @@ class MutanFusion(AbstractFusion):
         
         self.list_linear_hv = nn.ModuleList([
             nn.Linear(self.opt['dim_hv'], self.opt['dim_mm'])
-            for i in range(self.opt['R'])])
+            for i in range(self.opt['R'])]) 
 
         self.list_linear_hq = nn.ModuleList([
             nn.Linear(self.opt['dim_hq'], self.opt['dim_mm'])
-            for i in range(self.opt['R'])])
+            for i in range(self.opt['R'])])      #有秩R稀疏约束
 
     def forward(self, input_v, input_q):
-        if input_v.dim() != input_q.dim() and input_v.dim() != 2:
+        if input_v.dim() != input_q.dim() and input_v.dim() != 2:    # 判断视觉输入维度和问题维度是否不相等且不等于2
             raise ValueError
         batch_size = input_v.size(0)
 
@@ -57,7 +57,7 @@ class MutanFusion(AbstractFusion):
             if 'activation_hq' in self.opt:
                 x_hq = getattr(F, self.opt['activation_hq'])(x_hq)
 
-            x_mm.append(torch.mul(x_hq, x_hv))
+            x_mm.append(torch.mul(x_hq, x_hv))     #q、v的维度相同，向量相乘后追加到x_mm
 
         x_mm = torch.stack(x_mm, dim=1)
         x_mm = x_mm.sum(1).view(batch_size, self.opt['dim_mm'])
