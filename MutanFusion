@@ -42,8 +42,8 @@ class MutanFusion(AbstractFusion):
             if 'activation_q' in self.opt:
                     x_q = getattr(F, self.opt['activation_q'])(x_q)
         else:
-            x_q = input_q
-
+            x_q = input_q  
+                                   秩R的约束，原文Z表示成R个Zr的总和，Z会投影到预测空间y上。
         x_mm = []
         for i in range(self.opt['R']):
 
@@ -57,12 +57,12 @@ class MutanFusion(AbstractFusion):
             if 'activation_hq' in self.opt:
                 x_hq = getattr(F, self.opt['activation_hq'])(x_hq)
 
-            x_mm.append(torch.mul(x_hq, x_hv))     #q、v的维度相同，向量相乘后追加到x_mm
+            x_mm.append(torch.mul(x_hq, x_hv))     #q、v的维度相同，使用mul()对应位相乘进行融合，融合后大小不变
 
         x_mm = torch.stack(x_mm, dim=1)
         x_mm = x_mm.sum(1).view(batch_size, self.opt['dim_mm'])
 
         if 'activation_mm' in self.opt:
-            x_mm = getattr(F, self.opt['activation_mm'])(x_mm)
+            x_mm = getattr(F, self.opt['activation_mm'])(x_mm)       # activation_mm = softmax，模型的输出output，来预测答案。
 
-        return x_mm     #返回的是x_mm
+        return x_mm     #返回
