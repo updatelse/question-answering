@@ -1,10 +1,10 @@
-def get_top_answers(imgs, params):
+def get_top_answers(imgs, params):     #输入：imgs,imgs带有训练答案
     counts = {}
     for img in imgs:
-        ans = img['ans'] 
-        counts[ans] = counts.get(ans, 0) + 1
+        ans = img['ans']      #每个图像计算后对应的答案
+        counts[ans] = counts.get(ans, 0) + 1            """功能：将答案向量排序后翻转颠倒获取第一个答案、数量"""
 
-    cw = sorted([(count,w) for w,count in counts.iteritems()], reverse=True)
+    cw = sorted([(count,w) for w,count in counts.iteritems()], reverse=True)  
     print('top answer and their counts:')
     print('\n'.join(map(str,cw[:20])))
     
