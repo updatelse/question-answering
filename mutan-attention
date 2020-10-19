@@ -1,10 +1,10 @@
-    def _attention(self, input_v, x_q_vec):
-        batch_size = input_v.size(0)  #批处理大小  
-        width = input_v.size(2)    #宽度
-        height = input_v.size(3)    #高度
+def _attention(self, input_v, x_q_vec):
+        batch_size = input_v.size(0)
+        width = input_v.size(2)
+        height = input_v.size(3)
 
-                          # 融合前视觉处理
-                          #x_v = input_v.view(batch_size*width*height, dim_features)
+                                # Process visual before fusion
+                                # x_v = input_v.view(batch_size*width*height, dim_features)
         x_v = input_v
         x_v = F.dropout(x_v,
                         p=self.opt['attention']['dropout_v'],
@@ -14,29 +14,30 @@
             x_v = getattr(F, self.opt['attention']['activation_v'])(x_v)
         x_v = x_v.view(batch_size,
                        self.opt['attention']['dim_v'],
-                       width * height)
-        x_v = x_v.transpose(1,2)
+                       width * height)  # （batchsize, 2048，长*宽）
+        x_v = x_v.transpose(1,2)  # (batchsize, 长*宽， 2048)
 
-                # 融合前问题处理
+        # Process question before fusion
         x_q = F.dropout(x_q_vec, p=self.opt['attention']['dropout_q'],
                            training=self.training)
-        x_q = self.linear_q_att(x_q)
+        x_q = self.linear_q_att(x_q) 
         if 'activation_q' in self.opt['attention']:
             x_q = getattr(F, self.opt['attention']['activation_q'])(x_q)
         x_q = x_q.view(batch_size,
                        1,
-                       self.opt['attention']['dim_q'])
+                       self.opt['attention']['dim_q'])  # x_q = (batchsize, 1， 2400)
         x_q = x_q.expand(batch_size,
                          width * height,
-                         self.opt['attention']['dim_q'])
+                         self.opt['attention']['dim_q'])  # x_q = (batchsize, 长乘宽， 2400) 为了与x_v匹配
 
-        # 第一次多模融合
+        # 第一次融合
+        # 调用fusion.py中的 MutanFusion2d（）
         x_att = self._fusion_att(x_v, x_q)
 
         if 'activation_mm' in self.opt['attention']:
-            x_att = getattr(F, self.opt['attention']['activation_mm'])(x_att)
+            x_att = getattr(F, self.opt['attention']['activation_mm'])(x_att)   #第一次融合能得到x_att
 
-        # Process attention vectors
+        # 处理注意向量
         x_att = F.dropout(x_att,
                           p=self.opt['attention']['dropout_mm'],
                           training=self.training)
@@ -44,13 +45,17 @@
         x_att = x_att.view(batch_size,
                            width,
                            height,
-                           self.opt['attention']['dim_mm']) 
-        x_att = x_att.transpose(2,3).transpose(1,2)
+                           self.opt['attention']['dim_mm'])  # （batchsize,14,14,510）
+        x_att = x_att.transpose(2,3).transpose(1,2)  # (batchsize, 510, 14, 14)
+
+        # 输入 [batchsize, 通道510， 图片高14， 图片宽14]
+        # 卷积 [通道510， 输出深度2， 过滤器宽1， 过滤器宽1]
+        # 结果 [batchsize, 输出深度2， 14， 14]
         x_att = self.conv_att(x_att)
         x_att = x_att.view(batch_size,
                            self.opt['attention']['nb_glimpses'],
-                           width * height)
-        list_att_split = torch.split(x_att, 1, dim=1)
+                           width * height) # (batchsize, 2, 14*14)
+        list_att_split = torch.split(x_att, 1, dim=1)  # (batchsize, 1, 14*14)
         list_att = []
         for x_att in list_att_split:
             x_att = x_att.contiguous()
@@ -60,7 +65,7 @@
 
         self.list_att = [x_att.data for x_att in list_att]
 
-        # Apply attention vectors to input_v
+        # Apply attention vectors to input_v 把注意力向量应用到input_v中
         x_v = input_v.view(batch_size, self.opt['dim_v'], width * height)
         x_v = x_v.transpose(1,2)
 
@@ -72,9 +77,11 @@
             x_att = x_att.expand(batch_size,
                                  width * height,
                                  self.opt['dim_v'])
-            x_v_att = torch.mul(x_att, x_v)
-            x_v_att = x_v_att.sum(1)
-            x_v_att = x_v_att.view(batch_size, self.opt['dim_v'])
+            # x_att(batchsize, 14*14, 2048)
+            # x_v(batchsize, 14*14, 2048)
+            x_v_att = torch.mul(x_att, x_v)   # 使用mul对x_att和x_v进行向量对应位相乘
+            x_v_att = x_v_att.sum(1)          #(batchsize，1，dim_v)
+            x_v_att = x_v_att.view(batch_size, self.opt['dim_v'])  # （batchsize，2048）
             list_v_att.append(x_v_att)
 
-        return list_v_att
+        return list_v_att    #返回了图像注意力列表  第72行
