@@ -1,8 +1,8 @@
 class MutanFusion(AbstractFusion):
 
     def __init__(self, opt, visual_embedding=True, question_embedding=True):   
-        super(MutanFusion, self).__init__(opt)
-        self.visual_embedding = visual_embedding                                        """输入：问题特征向量q、图像特征向量v,功能：与张量Tc进行融合"""
+        super(MutanFusion, self).__init__(opt
+        self.visual_embedding = visual_embedding                                        """输入：问题特征向量q、图像特征向量v,功能：将q和v进行融合"""
         self.question_embedding = question_embedding
             # 模块
         if self.visual_embedding:
@@ -23,12 +23,12 @@ class MutanFusion(AbstractFusion):
             nn.Linear(self.opt['dim_hq'], self.opt['dim_mm'])
             for i in range(self.opt['R'])])      #有秩R稀疏约束
 
-    def forward(self, input_v, input_q):
-        if input_v.dim() != input_q.dim() and input_v.dim() != 2:    # 判断视觉输入维度和问题维度是否不相等且不等于2
+    def forward(self, input_v, input_q):  # 两个参数的维度是2
+        if input_v.dim() != input_q.dim() and input_v.dim() != 2:    # 判断视觉输入维度和问题维度是否不相等且不等于2，出错
             raise ValueError
         batch_size = input_v.size(0)
 
-        if self.visual_embedding:
+        if self.visual_embedding:    #处理图像和问题的嵌入
             x_v = F.dropout(input_v, p=self.opt['dropout_v'], training=self.training)
             x_v = self.linear_v(x_v) 
             if 'activation_v' in self.opt:
