@@ -1,6 +1,6 @@
 class MutanAtt(AbstractAtt):
 
-    def __init__(self, opt={}, vocab_words=[], vocab_answers=[]):
+    def __init__(self, opt={}, vocab_words=[], vocab_answers=[]):     """输入：答案向量、问题单词向量，
         # TODO: deep copy 
         opt['attention']['dim_v'] = opt['attention']['dim_hv']
         opt['attention']['dim_q'] = opt['attention']['dim_hq']
