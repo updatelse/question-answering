@@ -1,6 +1,6 @@
-class MLBAtt(AbstractAtt):    #多模态低秩双线性注意力
-
-    def __init__(self, opt={}, vocab_words=[], vocab_answers=[]):
+class MLBAtt(AbstractAtt):    
+                                                  #多模态低秩双线性注意力
+    def __init__(self, opt={}, vocab_words=[], vocab_answers=[]):            #输入
         # TODO: deep copy 
         opt['attention']['dim_v']  = opt['attention']['dim_h']
         opt['attention']['dim_q']  = opt['attention']['dim_h']
