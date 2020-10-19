@@ -1,5 +1,5 @@
-    def _fusion_glimpses(self, list_v_att, x_q_vec):
-        # Process visual for each glimpses
+    def _fusion_glimpses(self, list_v_att, x_q_vec):      #输入图像注意力、问题向量
+        # Process visual for each glimpses          #会调用MutanFusion   
         list_v = []
         for glimpse_id, x_v_att in enumerate(list_v_att):
             x_v = F.dropout(x_v_att,
@@ -11,7 +11,7 @@
             list_v.append(x_v)
         x_v = torch.cat(list_v, 1)
 
-        # Process question
+        # 问题处理过程
         x_q = F.dropout(x_q_vec,
                         p=self.opt['fusion']['dropout_q'],
                         training=self.training)
@@ -20,5 +20,5 @@
             x_q = getattr(F, self.opt['fusion']['activation_q'])(x_q)
 
         # 第二次多模态融合
-        x = self._fusion_classif(x_v, x_q)
+        x = self._fusion_classif(x_v, x_q)   #预测答案输出
         return x
