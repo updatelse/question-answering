@@ -1,5 +1,5 @@
 class MLBAtt(AbstractAtt):    
-                                                  #多模态低秩双线性注意力
+-----多模态低秩双线性注意力-------
     def __init__(self, opt={}, vocab_words=[], vocab_answers=[]):            #输入
         # TODO: deep copy 
         opt['attention']['dim_v']  = opt['attention']['dim_h']
@@ -8,27 +8,24 @@ class MLBAtt(AbstractAtt):
         super(MLBAtt, self).__init__(opt, vocab_words, vocab_answers)
         
         # 分类模块
+        #图像融合线性变换
         self.list_linear_v_fusion = nn.ModuleList([
-            nn.Linear(self.opt['dim_v'],
-                      self.opt['fusion']['dim_h'])
+            nn.Linear(self.opt['dim_v'],          
+                      self.opt['fusion']['dim_h'])                   #(2048,1200)
             for i in range(self.opt['attention']['nb_glimpses'])])
-        self.linear_q_fusion = nn.Linear(self.opt['dim_q'],
+        self.linear_q_fusion = nn.Linear(self.opt['dim_q'],          #(2400,1200*nb_glimpses)
                                          self.opt['fusion']['dim_h']
                                          * self.opt['attention']['nb_glimpses'])
                                          
-        self.linear_classif = nn.Linear(self.opt['fusion']['dim_h']
+        self.linear_classif = nn.Linear(self.opt['fusion']['dim_h']         #(1200*nb_glimpses,
                                         * self.opt['attention']['nb_glimpses'],
                                         self.num_classes)
 
     def _fusion_att(self, x_v, x_q):
-    """
-    功能：
-    输入：size; [batch, 1, weight,high];
-    输出：
-    """
-        x_att = torch.mul(x_v, x_q)
+  
+        x_att = torch.mul(x_v, x_q)    #矩阵x_v和x_q对应位相乘，两个矩阵维度必须相等
         return x_att
-
+ 
     def _fusion_classif(self, x_v, x_q):
         x_mm = torch.mul(x_v, x_q)
         return x_mm
