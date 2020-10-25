@@ -1,6 +1,6 @@
     def _fusion_glimpses(self, list_v_att, x_q_vec):      #输入图像注意力、问题向量
         # Process visual for each glimpses          #会调用MutanFusion   
-        list_v = []
+        list_v = [] 
         for glimpse_id, x_v_att in enumerate(list_v_att):
             x_v = F.dropout(x_v_att,
                             p=self.opt['fusion']['dropout_v'],
