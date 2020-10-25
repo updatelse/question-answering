@@ -1,5 +1,6 @@
     def _fusion_glimpses(self, list_v_att, x_q_vec):      #输入图像注意力、问题向量
-        # Process visual for each glimpses          #会调用MutanFusion   
+        # Process visual for each glimpses，会调用MutanFusion，注意力机制中为每个一瞥处理视觉  
+        # 两个list_v_att（batch_size, self.opt['dim_v']）  图像是2维的
         list_v = [] 
         for glimpse_id, x_v_att in enumerate(list_v_att):
             x_v = F.dropout(x_v_att,
@@ -9,16 +10,16 @@
             if 'activation_v' in self.opt['fusion']:
                 x_v = getattr(F, self.opt['fusion']['activation_v'])(x_v)
             list_v.append(x_v)
-        x_v = torch.cat(list_v, 1)
+        x_v = torch.cat(list_v, 1)    #拼接函数，将list_v按照维度1(列)接进行拼接
 
         # 问题处理过程
         x_q = F.dropout(x_q_vec,
                         p=self.opt['fusion']['dropout_q'],
                         training=self.training)
-        x_q = self.linear_q_fusion(x_q)
-        if 'activation_q' in self.opt['fusion']:
+        x_q = self.linear_q_fusion(x_q)          # 线性融合x_q
+        if 'activation_q' in self.opt['fusion']:               #activation_v:tanh
             x_q = getattr(F, self.opt['fusion']['activation_q'])(x_q)
 
         # 第二次多模态融合
         x = self._fusion_classif(x_v, x_q)   #预测答案输出
-        return x
+        return xl
