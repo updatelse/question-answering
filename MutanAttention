@@ -6,21 +6,21 @@ class MutanAtt(AbstractAtt):
         opt['attention']['dim_q'] = opt['attention']['dim_hq']
         super(MutanAtt, self).__init__(opt, vocab_words, vocab_answers)
         #  分类模块
-        self.fusion_att = fusion.MutanFusion2d(self.opt['attention'],
+        self.fusion_att = fusion.MutanFusion2d(self.opt['attention'],   #融合注意力，调用MutanFusion2d函数
                                                visual_embedding=False,
                                                question_embedding=False)
-        self.list_linear_v_fusion = nn.ModuleList([
+        self.list_linear_v_fusion = nn.ModuleList([            #视觉融合线性变换
             nn.Linear(self.opt['dim_v'],
                       int(self.opt['fusion']['dim_hv']
                           / opt['attention']['nb_glimpses']))
             for i in range(self.opt['attention']['nb_glimpses'])])
-        self.linear_q_fusion = nn.Linear(self.opt['dim_q'],
+        self.linear_q_fusion = nn.Linear(self.opt['dim_q'],            #对问题的融合线性变换
                                          self.opt['fusion']['dim_hq'])
                                          
         self.linear_classif = nn.Linear(self.opt['fusion']['dim_mm'],
                                         self.num_classes)
                                         
-        self.fusion_classif = fusion.MutanFusion(self.opt['fusion'],
+        self.fusion_classif = fusion.MutanFusion(self.opt['fusion'],     #Mutan融合预测
                                                  visual_embedding=False,
                                                  question_embedding=False)
 
