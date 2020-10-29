@@ -1,0 +1,36 @@
+class BertModel(BertPreTrainedModel):
+    
+    def __init__(self, config):
+        super().__init__(config)
+        self.embeddings = BertEmbeddings(config)
+        self.encoder = CrossEncoder(config)
+        self.pooler = BertPooler(config)
+        self.apply(self.init_bert_weights)
+
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None,
+                visual_feats=None, visual_attention_mask=None):
+        if attention_mask is None:
+            attention_mask = torch.ones_like(input_ids)
+        if token_type_ids is None:
+            token_type_ids = torch.zeros_like(input_ids)
+
+        extended_attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
+        extended_attention_mask = extended_attention_mask.to(dtype=next(self.parameters()).dtype)
+        extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
+
+        if visual_attention_mask is not None:
+            extended_visual_attention_mask = visual_attention_mask.unsqueeze(1).unsqueeze(2)
+            extended_visual_attention_mask = extended_visual_attention_mask.to(dtype=next(self.parameters()).dtype) # fp16 compatibility
+            extended_visual_attention_mask = (1.0 - extended_visual_attention_mask) * -10000.0
+        else:
+            extended_visual_attention_mask = None
+
+        embedding_output = self.embeddings(input_ids, token_type_ids)
+        lang_feats, visn_feats = self.encoder(
+            embedding_output,
+            extended_attention_mask,
+            visn_feats=visual_feats,
+            visn_attention_mask=extended_visual_attention_mask)
+        pooled_output = self.pooler(lang_feats)
+
+        return (lang_feats, visn_feats), pooled_output
